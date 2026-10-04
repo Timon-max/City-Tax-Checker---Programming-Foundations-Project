@@ -61,3 +61,14 @@ Out of scope:
 ## Data
 
 This repository contains no real guest data. All tests use a small fake dataset.
+
+## User Stories
+
+# Input
+# Processing
+
+1. As a hotel receptionist, I want the app to find each guest's registration in the other list, so that I spend less time on the daily check.
+1. As a hotel receptionist, I want the app to work out how many guests are taxable, using date of birth and the 12-or-older rule, so that I no longer have to check children's ages by hand.
+1. As a hotel receptionist, I want the app to compare what List 1 charged with the correct amount and show the difference and the correction, so that guests are charged city tax for the right number of people.
+
+# Output
