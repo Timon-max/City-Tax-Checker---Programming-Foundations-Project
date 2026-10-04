@@ -65,10 +65,49 @@ This repository contains no real guest data. All tests use a small fake dataset.
 ## User Stories
 
 ### Input
-### Processing
+### Processing (owner: Timon)
 
-1. As a hotel receptionist, I want the app to find each guest's registration in the other list, so that I spend less time on the daily check.
-1. As a hotel receptionist, I want the app to work out how many guests are taxable, using date of birth and the 12-or-older rule, so that I no longer have to check children's ages by hand.
-1. As a hotel receptionist, I want the app to compare what List 1 charged with the correct amount and show the difference and the correction, so that guests are charged city tax for the right number of people.
+#### User Story 1: Match guests across both lists
+
+As a hotel receptionist, I want the app to find each guest's registration in the other list, so that I spend less time on the daily check.
+
+Acceptance criteria:
+1. Guests are matched by surname, the only field both lists have (List 1 has no date of birth).
+2. Before matching, names are normalised: upper case, spaces trimmed, a leading "** " removed, accents removed ("Müller" = "MUELLER" = "MULLER").
+3. A guest found in only one list is reported as "not matched", not skipped.
+4. If the same surname appears in more than one room, the app flags it as "ambiguous" instead of guessing.
+
+Example: Given "MÜLLER Hans" in room 101 of List 1 and "Müller, Hans" in the Meldeschein, when the lists are matched, then the app links both entries to room 101.
+
+Edge case: Given "Weber" in the Meldeschein but in no row of List 1, then the app lists Weber as "not matched".
+
+#### User Story 2: Count taxable guests
+
+As a hotel receptionist, I want the app to work out how many guests are taxable, using date of birth and the 12-or-older rule, so that I no longer have to check children's ages by hand.
+
+Acceptance criteria:
+1. A guest's age is calculated on the arrival date (Anreise).
+2. A guest aged 12 or older is taxable, under 12 is exempt (assumption, cutoff to confirm).
+3. The app counts the taxable guests per room.
+4. A missing or invalid date of birth is flagged, and the guest is counted as taxable until checked.
+
+Example: Given a room with 4 guests aged 40, 38, 13 and 9 on the arrival date, when taxable guests are counted, then the result is 3.
+
+Edge case: Given a guest who turns 12 during the stay, then the guest is still exempt, because age is taken on the arrival date.
+
+#### User Story 3: Compare charged and correct city tax
+
+As a hotel receptionist, I want the app to compare what List 1 charged with the correct amount and show the difference and the correction, so that guests are charged city tax for the right number of people.
+
+Acceptance criteria:
+1. Correct city tax per night = taxable guests × 4.20 CHF (assumption, rate to confirm).
+2. Nights = departure date minus arrival date. Correct city tax per stay = per night × nights.
+3. When the lists disagree, the Meldeschein counts as correct (assumption).
+4. For every room with a difference, the app shows: room, guest name, persons in List 1, correct persons, amount charged, correct amount, difference.
+5. Amounts are shown with 2 decimals. Rooms without a difference are not listed.
+
+Example: Given room 101 charged in List 1 for 2 persons (8.40 per night) and 3 taxable guests for 2 nights, when the amounts are compared, then the app shows "Change 2 to 3, charged 16.80, correct 25.20, difference 8.40".
+
+Edge case: Given a room where List 1 already matches the correct amount, then the room does not appear in the list of differences.
 
 ### Output
