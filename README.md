@@ -24,7 +24,7 @@ The reception has to compare two lists every day:
 
 ### Example
 
-A family books for 2 adults and 2 children, 2 nights. On arrival one child turns out to be 13, so 3 people must pay city tax (rate of 4.20 per person per night, still to be confirmed).
+A family books for 2 adults and 2 children, 2 nights. On arrival one child turns out to be 13, so 3 people must pay city tax 
 
 | | List 1 says | Correct | App reports |
 |---|---|---|---|
@@ -65,6 +65,58 @@ This repository contains no real guest data. All tests use a small fake dataset.
 ## User Stories
 
 ### Input
+User Story 4: Load the two lists
+
+As a hotel receptionist, I want the application to load the MC_Prestations and Meldeschein files, so that I can start the daily city tax check without entering the data manually.
+
+Acceptance criteria:
+
+The application allows the user to select or enter the two input files.
+The application checks that both files exist and can be opened.
+The application reads the required data from both files.
+If a file is missing or cannot be opened, the application displays a clear error message.
+The comparison does not start until both files have been loaded successfully.
+The original input files are not modified.
+
+Example: Given a valid MC_Prestations file and a valid Meldeschein file, when the user starts the city tax check, then both files are loaded successfully and the application continues with the data validation.
+
+Edge case: Given that the Meldeschein file cannot be found, when the user starts the city tax check, then the application displays an error message and does not start the comparison.
+
+User Story 5: Validate the input data
+
+As a hotel receptionist, I want the application to validate the data in both lists, so that invalid data does not lead to an incorrect city tax calculation.
+
+Acceptance criteria:
+
+The application checks that all required columns are present.
+Arrival and departure dates must be valid dates.
+The departure date must not be before the arrival date.
+Numerical values, such as room numbers, number of guests and city tax amounts, must contain valid numbers.
+Required fields must not be empty.
+Invalid data is clearly reported to the user.
+Invalid data must not be used to calculate the city tax.
+
+Example: Given a guest with a valid surname, room number, arrival date, departure date and date of birth, when the input is validated, then the guest can be processed.
+
+Edge case: Given a guest whose departure date is before the arrival date, when the input is validated, then the application reports the entry as invalid and does not use it for the calculation.
+
+User Story 6: Handle missing guest information
+
+As a hotel receptionist, I want the application to identify missing guest information, so that I can check the affected entry before the city tax is calculated.
+
+Acceptance criteria:
+
+The application checks that each guest has the information required for the city tax calculation.
+Required guest information includes the surname, arrival date, departure date and date of birth.
+If the date of birth is missing, the application flags the guest for manual checking.
+If the arrival or departure date is missing, the application flags the entry as invalid.
+The application identifies the affected guest or room in the error message.
+The application does not silently make assumptions about missing information.
+
+Example: Given a guest with a surname, arrival date, departure date and date of birth, when the input is checked, then the guest can be processed normally.
+
+Edge case: Given a guest whose date of birth is missing, when the input is checked, then the application reports the missing information and flags the guest for manual checking instead of calculating the city tax automatically.
+
 ### Processing (owner: Timon)
 
 #### User Story 1: Match guests across both lists
@@ -87,7 +139,7 @@ As a hotel receptionist, I want the app to work out how many guests are taxable,
 
 Acceptance criteria:
 1. A guest's age is calculated on the arrival date (Anreise).
-2. A guest aged 12 or older is taxable, under 12 is exempt (assumption, cutoff to confirm).
+2. A guest aged 12 or older is taxable, under 12 is exempt
 3. The app counts the taxable guests per room.
 4. A missing or invalid date of birth is flagged, and the guest is counted as taxable until checked.
 
@@ -102,7 +154,7 @@ As a hotel receptionist, I want the app to compare what List 1 charged with the 
 Acceptance criteria:
 1. Correct city tax per night = taxable guests × 4.20 CHF (assumption, rate to confirm).
 2. Nights = departure date minus arrival date. Correct city tax per stay = per night × nights.
-3. When the lists disagree, the Meldeschein counts as correct (assumption).
+3. When the lists disagree, the Meldeschein counts as correct, but also send a notification to the user 
 4. For every room with a difference, the app shows: room, guest name, persons in List 1, correct persons, amount charged, correct amount, difference.
 5. Amounts are shown with 2 decimals. Rooms without a difference are not listed.
 
