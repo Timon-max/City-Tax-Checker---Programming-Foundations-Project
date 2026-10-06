@@ -162,4 +162,48 @@ Example: Given room 101 charged in List 1 for 2 persons (8.40 per night) and 3 t
 
 Edge case: Given a room where List 1 already matches the correct amount, then the room does not appear in the list of differences.
 
-### Output
+### Output (owner: Noah)
+
+#### User Story 1: Display console menu to user
+
+As a hotel receptionist, I want to see a clear menu with options to start a new tax check or exit the program, so that I can easily navigate through the application.
+
+Acceptance criteria:
+1. The menu displays options: "Start City Tax Check" and "Exit".
+2. The user can select an option by typing a number (1 or 2).
+3. If an invalid option is entered, the app shows an error message and re-displays the menu.
+4. After completing a check, the menu returns automatically so the user can perform another check.
+
+Example: Given the app has started, when the user sees the menu, then they can choose option 1 to start a new check or option 2 to exit.
+
+Edge case: Given the user enters "5" instead of a valid option, then the app displays "Invalid choice, please try again" and re-shows the menu.
+
+#### User Story 2: Display the report of differences to the user
+
+As a hotel receptionist, I want to see a clear, organized report of all differences between the two lists, so that I can quickly understand what needs to be corrected.
+
+Acceptance criteria:
+1. The report displays in a table format with columns: Room, Guest Name, List 1 Persons, Correct Persons, List 1 Amount, Correct Amount, Difference.
+2. All monetary amounts show exactly 2 decimal places in CHF.
+3. Only rooms with differences are shown (no rooms with 0 difference).
+4. A summary at the end shows total charged vs total correct and total difference amount.
+5. The report can be displayed to the user after processing completes.
+
+Example: Given processing found 2 rooms with differences, when the report is displayed, then the user sees a table with 2 rows showing the details and a summary line with totals.
+
+Edge case: Given no differences are found between the lists, then the app displays "No differences found" instead of an empty table.
+
+#### User Story 3: Save the report to a file
+
+As a hotel receptionist, I want to save the difference report as a file, so that I can archive it for documentation and review later if needed.
+
+Acceptance criteria:
+1. After viewing the report, the user is asked "Do you want to save the report? (yes/no)".
+2. If yes, the app saves the report as a .txt or .csv file with a timestamp: "report_YYYYMMDD_HHMMSS".
+3. The file is saved to a "reports" folder (created automatically if it doesn't exist).
+4. The file contains the same table and summary as displayed on screen.
+5. A confirmation message shows the file path where the report was saved.
+
+Example: Given the report has been displayed, when the user chooses to save it, then a file "report_20261005_143022.txt" is created in the "reports" folder and the user sees "Report saved to reports/report_20261005_143022.txt".
+
+Edge case: Given the file already exists, then the app creates a new file with a unique timestamp (the timestamp ensures uniqueness).
