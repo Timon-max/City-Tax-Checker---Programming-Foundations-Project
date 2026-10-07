@@ -135,7 +135,7 @@ Edge case: Given "Weber" in the Meldeschein but in no row of List 1, then the ap
 
 #### User Story 2: Count taxable guests
 
-As a hotel receptionist, I want the app to work out how many guests are taxable, using date of birth and the 12-or-older rule, so that I no longer have to check children's ages by hand.
+As a hotel receptionist, I want the app to work out how many guests are taxable, using date of birth and the 12-or-older rule, so that I no longer have to check children's ages by hand. 
 
 Acceptance criteria:
 1. A guest's age is calculated on the arrival date (Anreise).
