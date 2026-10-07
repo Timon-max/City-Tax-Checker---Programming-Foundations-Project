@@ -66,15 +66,15 @@ This repository contains **no real guest data**. All tests use a small fake data
 
 | Area | Stories | Owner |
 |---|---|---|
-| [Input](#input) | 4, 5, 6 | Cristian |
-| [Processing](#processing-owner-timon) | 1, 2, 3 | Timon |
-| [Output](#output-owner-noah) | 1, 2, 3 | Noah |
+| [Input](#input-owner-cristian) | 1, 2, 3 | Cristian |
+| [Processing](#processing-owner-timon) | 4, 5, 6 | Timon |
+| [Output](#output-owner-noah) | 7, 8, 9 | Noah |
 
 ---
 
-### Input
+### Input (owner: Cristian)
 
-#### User Story 4: Load the two lists
+#### User Story 1: Load the two lists
 
 As a hotel receptionist, I want the application to load the MC_Prestations and Meldeschein files, so that I can start the daily city tax check without entering the data manually.
 
@@ -90,7 +90,7 @@ As a hotel receptionist, I want the application to load the MC_Prestations and M
 
 **Edge case:** Given that the Meldeschein file cannot be found, when the user starts the city tax check, then the application displays an error message and does not start the comparison.
 
-#### User Story 5: Validate the input data
+#### User Story 2: Validate the input data
 
 As a hotel receptionist, I want the application to validate the data in both lists, so that invalid data does not lead to an incorrect city tax calculation.
 
@@ -107,7 +107,7 @@ As a hotel receptionist, I want the application to validate the data in both lis
 
 **Edge case:** Given a guest whose departure date is before the arrival date, when the input is validated, then the application reports the entry as invalid and does not use it for the calculation.
 
-#### User Story 6: Handle missing guest information
+#### User Story 3: Handle missing guest information
 
 As a hotel receptionist, I want the application to identify missing guest information, so that I can check the affected entry before the city tax is calculated.
 
@@ -127,7 +127,7 @@ As a hotel receptionist, I want the application to identify missing guest inform
 
 ### Processing (owner: Timon)
 
-#### User Story 1: Match guests across both lists
+#### User Story 4: Match guests across both lists
 
 As a hotel receptionist, I want the app to find each guest's registration in the other list, so that I spend less time on the daily check.
 
@@ -141,7 +141,7 @@ As a hotel receptionist, I want the app to find each guest's registration in the
 
 **Edge case:** Given `Weber` in the Meldeschein but in no row of List 1, then the app lists Weber as "not matched".
 
-#### User Story 2: Count taxable guests
+#### User Story 5: Count taxable guests
 
 As a hotel receptionist, I want the app to work out how many guests are taxable, using date of birth and the 12-or-older rule, so that I no longer have to check children's ages by hand.
 
@@ -155,7 +155,7 @@ As a hotel receptionist, I want the app to work out how many guests are taxable,
 
 **Edge case:** Given a guest who turns 12 during the stay, then the guest is still exempt, because age is taken on the arrival date.
 
-#### User Story 3: Compare charged and correct city tax
+#### User Story 6: Compare charged and correct city tax
 
 As a hotel receptionist, I want the app to compare what List 1 charged with the correct amount and show the difference and the correction, so that guests are charged city tax for the right number of people.
 
@@ -174,7 +174,7 @@ As a hotel receptionist, I want the app to compare what List 1 charged with the 
 
 ### Output (owner: Noah)
 
-#### User Story 1: Display console menu to user
+#### User Story 7: Display console menu to user
 
 As a hotel receptionist, I want to see a clear menu with options to start a new tax check or exit the program, so that I can easily navigate through the application.
 
@@ -188,7 +188,7 @@ As a hotel receptionist, I want to see a clear menu with options to start a new 
 
 **Edge case:** Given the user enters `5` instead of a valid option, then the app displays `Invalid choice, please try again` and re-shows the menu.
 
-#### User Story 2: Display the report of differences to the user
+#### User Story 8: Display the report of differences to the user
 
 As a hotel receptionist, I want to see a clear, organized report of all differences between the two lists, so that I can quickly understand what needs to be corrected.
 
@@ -203,7 +203,7 @@ As a hotel receptionist, I want to see a clear, organized report of all differen
 
 **Edge case:** Given no differences are found between the lists, then the app displays `No differences found` instead of an empty table.
 
-#### User Story 3: Save the report to a file
+#### User Story 9: Save the report to a file
 
 As a hotel receptionist, I want to save the difference report as a file, so that I can archive it for documentation and review later if needed.
 
