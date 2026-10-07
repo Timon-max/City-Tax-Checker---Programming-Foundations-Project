@@ -66,7 +66,7 @@ This repository contains **no real guest data**. All tests use a small fake data
 
 | Area | Stories | Owner |
 |---|---|---|
-| [Input](#input) | 4, 5, 6 | | Cristian |
+| [Input](#input) | 4, 5, 6 | Cristian |
 | [Processing](#processing-owner-timon) | 1, 2, 3 | Timon |
 | [Output](#output-owner-noah) | 1, 2, 3 | Noah |
 
