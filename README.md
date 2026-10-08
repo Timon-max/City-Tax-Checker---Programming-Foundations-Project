@@ -79,6 +79,7 @@ This repository contains **no real guest data**. All tests use a small fake data
 As a hotel receptionist, I want the application to load the MC_Prestations and Meldeschein files, so that I can start the daily city tax check without entering the data manually.
 
 **Acceptance criteria**
+
 1. The application allows the user to select or enter the two input files.
 2. The application checks that both files exist and can be opened.
 3. The application reads the required data from both files.
@@ -90,38 +91,43 @@ As a hotel receptionist, I want the application to load the MC_Prestations and M
 
 **Edge case:** Given that the Meldeschein file cannot be found, when the user starts the city tax check, then the application displays an error message and does not start the comparison.
 
-#### User Story 2: Validate the input data
+#### User Story 2: Validate input data and handle missing guest information
 
-As a hotel receptionist, I want the application to validate the data in both lists, so that invalid data does not lead to an incorrect city tax calculation.
+As a hotel receptionist, I want the application to validate the data in both lists and identify missing guest information, so that incorrect or incomplete data does not lead to an incorrect city tax calculation.
 
 **Acceptance criteria**
+
 1. The application checks that all required columns are present.
-2. Arrival and departure dates must be valid dates.
-3. The departure date must not be before the arrival date.
-4. Numerical values, such as room numbers, number of guests and city tax amounts, must contain valid numbers.
-5. Required fields must not be empty.
-6. Invalid data is clearly reported to the user.
-7. Invalid data must not be used to calculate the city tax.
+2. Required information includes the surname, arrival date and departure date.
+3. Arrival and departure dates must be valid dates.
+4. The departure date must not be before the arrival date.
+5. Numerical values, such as room numbers, number of guests and city tax amounts, must contain valid numbers.
+6. If the date of birth is missing, the application flags the affected guest for manual checking.
+7. If the arrival or departure date is missing, the application flags the entry as invalid.
+8. Invalid data is clearly reported to the user and is not used to calculate the city tax.
+9. The error message identifies the affected guest or room.
+10. The application does not silently make assumptions about missing information.
 
-**Example:** Given a guest with a valid surname, room number, arrival date, departure date and date of birth, when the input is validated, then the guest can be processed.
+**Example:** Given a guest with a valid surname, arrival date, departure date and date of birth, when the input is validated, then the guest can be processed.
 
-**Edge case:** Given a guest whose departure date is before the arrival date, when the input is validated, then the application reports the entry as invalid and does not use it for the calculation.
+**Edge case:** Given a guest whose date of birth is missing, when the input is validated, then the application identifies the affected guest and flags the guest for manual checking instead of treating the entry as invalid.
 
-#### User Story 3: Handle missing guest information
+#### User Story 3: Select the check date
 
-As a hotel receptionist, I want the application to identify missing guest information, so that I can check the affected entry before the city tax is calculated.
+As a hotel receptionist, I want to select the date to be checked, so that the application processes the correct data for the daily city tax check.
 
 **Acceptance criteria**
-1. The application checks that each guest has the information required for the city tax calculation.
-2. Required guest information includes the surname, arrival date, departure date and date of birth.
-3. If the date of birth is missing, the application flags the guest for manual checking.
-4. If the arrival or departure date is missing, the application flags the entry as invalid.
-5. The application identifies the affected guest or room in the error message.
-6. The application does not silently make assumptions about missing information.
 
-**Example:** Given a guest with a surname, arrival date, departure date and date of birth, when the input is checked, then the guest can be processed normally.
+1. The application allows the user to enter the date to be checked.
+2. The application validates that the entered date is a real date.
+3. The application uses the selected date to determine which data belongs to the check.
+4. The selected date is shown to the user before processing starts.
+5. If an invalid date is entered, the application displays a clear error message and asks the user to enter the date again.
+6. The application does not silently assume a check date.
 
-**Edge case:** Given a guest whose date of birth is missing, when the input is checked, then the application reports the missing information and flags the guest for manual checking instead of calculating the city tax automatically.
+**Example:** Given that the receptionist selects 8 October 2026 as the check date, when the input is processed, then the application uses the data relevant to that date.
+
+**Edge case:** Given that the receptionist enters an invalid date, when the date is validated, then the application displays an error message and asks the user to enter a valid date.
 
 ---
 
