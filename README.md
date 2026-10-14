@@ -330,16 +330,16 @@ As a hotel receptionist, I want to save the report as a file, so that I can arch
 **Acceptance criteria**
 
 1. After viewing the report, the user is asked `Do you want to save the report? (yes/no)`. Only `yes`/`y` or `no`/`n` (any upper/lower case) are accepted, any other answer repeats the question.
-2. If yes, the app saves the report as a `.txt` file in the `reports` folder. The folder is created if it does not exist.
-3. The file name is `city_tax_report_<check date>_<YYYYMMDD_HHMMSS>.txt` (for a period: `city_tax_report_<start>_<end>_<YYYYMMDD_HHMMSS>.txt`), with dates written as `YYYYMMDD`.
-4. An existing file is **never overwritten**. If the file name already exists, the app adds `_2`, `_3`, … before `.txt` until it finds a free name. The file is opened in "create only" mode, so even a file created at the same moment cannot be overwritten.
-5. The file contains exactly the same content as the report on screen (differences, needs manual check, statistics).
+2. If yes, the app saves the table of differences as a `.csv` file in the `reports` folder. The folder is created if it does not exist.
+3. The file name is `city_tax_report_<check date>_<YYYYMMDD_HHMMSS>.csv` (for a period: `city_tax_report_<start>_<end>_<YYYYMMDD_HHMMSS>.csv`), with dates written as `YYYYMMDD`.
+4. An existing file is **never overwritten**. If the file name already exists, the app adds `_2`, `_3`, … before `.csv` until it finds a free name. The file is opened in "create only" mode, so even a file created at the same moment cannot be overwritten.
+5. The CSV uses the same format as the input files (UTF-8, `;` as separator, dates `DD.MM.YYYY`, amounts with 2 decimals), a header row with the columns of the table of differences (User Story 8), and one row per room and night with a difference. It can be opened directly in Excel.
 6. After saving, a confirmation message shows the full path of the saved file.
 7. If saving fails (folder cannot be created, no write permission, disk full, invalid path), the app displays `Report could not be saved: <reason>`, deletes any partly written file, and asks whether to try again or return to the menu without saving.
 8. A failed save never stops the program or loses the report on screen.
 
-**Example:** Given the report for 08.10.2026 has been displayed at 14:30:22 on 08.10.2026, when the user answers `yes`, then the file `reports/city_tax_report_20261008_20261008_143022.txt` is created and the user sees `Report saved to reports/city_tax_report_20261008_20261008_143022.txt`.
+**Example:** Given the report for 08.10.2026 has been displayed at 14:30:22 on 08.10.2026, when the user answers `yes`, then the file `reports/city_tax_report_20261008_20261008_143022.csv` is created and the user sees `Report saved to reports/city_tax_report_20261008_20261008_143022.csv`.
 
-**Edge case 1:** Given `reports/city_tax_report_20261008_20261008_143022.txt` already exists, when the user saves within the same second, then the app saves `reports/city_tax_report_20261008_20261008_143022_2.txt` and the existing file is unchanged.
+**Edge case 1:** Given `reports/city_tax_report_20261008_20261008_143022.csv` already exists, when the user saves within the same second, then the app saves `reports/city_tax_report_20261008_20261008_143022_2.csv` and the existing file is unchanged.
 
 **Edge case 2:** Given the `reports` folder is read-only, when the user saves, then the app displays `Report could not be saved: permission denied` and offers `1) Try again  2) Back to menu`.
