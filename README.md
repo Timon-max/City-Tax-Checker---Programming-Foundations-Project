@@ -230,21 +230,22 @@ As a hotel receptionist, I want to select the date or the period to be checked, 
 
 ### Processing (owner: Timon)
 
-#### User Story 4: Match records across both lists
+#### User Story 4: Match guests across both lists
 
-As a hotel receptionist, I want the app to link each city tax charge to the registered guests of the same reservation, so that I spend less time on the daily check and guests with the same surname are never mixed up.
+As a hotel receptionist, I want the app to link each city tax charge in List 1 to the matching guest in the Meldeschein, so that I spend less time on the daily check and guests the app cannot tell apart are shown to me instead of being guessed.
 
 **Acceptance criteria**
 
-1. Records are matched by `reservation_id`, which is unique per stay and present in both lists.
-2. Several List 1 rows with the same `reservation_id` and date (for example a guest invoice and a company invoice) are added up into one charge.
-3. A reservation found in only one list is reported as "not matched" (charged but not registered, or registered but not charged), not skipped.
-4. As a cross-check, the surname in List 1 is compared with the surnames of the guests in List 2, after normalising them: upper case, spaces trimmed, a leading `** ` removed, accents removed (`Müller` = `MUELLER` = `MULLER`).
-5. If the surname of List 1 matches none of the guests of the reservation, the reservation is still matched but flagged "name mismatch" for manual checking.
+1. Before matching, List 1 rows with the same room number and surname (for example a guest invoice and a company invoice) are added up into one charge per room.
+2. Surnames in both lists are normalised before matching: upper case, spaces trimmed, a leading `** ` removed, accents removed (`Müller` = `MUELLER` = `MULLER`).
+3. Guests are matched by surname only, because the two lists have no shared unique ID (see Known limitation).
+4. If the same surname appears in more than one room, all affected entries are flagged "ambiguous", left out of the calculation and listed for manual checking.
+5. The check does not stop at an ambiguous entry: all other guests are still matched and calculated.
+6. A guest found in only one list is reported as "not matched" (charged but not registered, or registered but not charged), not skipped.
 
-**Example:** Given `R-10421` with `** MÜLLER` in List 1 and four guests `Müller` in List 2, and `R-10433` with `MÜLLER` in List 1 and one guest `Müller` in List 2, when the lists are matched, then the four guests are linked to room 101 and the single guest to room 214, without confusion.
+**Example:** Given room 101 with two List 1 rows `** MÜLLER` (city tax 8.40, 0 persons) and `MÜLLER` (2 persons, no city tax), and one Meldeschein entry `Müller` with 2 persons, when the lists are matched, then both List 1 rows are added up into one charge for room 101 (8.40, 2 persons) and linked to the Meldeschein entry.
 
-**Edge case:** Given `R-10450` (Weber) in List 2 but in no `CITY_TAX` row of List 1 for the selected date, then the app reports `R-10450 Weber: registered but not charged`.
+**Edge case:** Given `KELLER` in rooms 204 and 305 of List 1 and two Meldeschein entries `Keller`, when the lists are matched, then the app flags both as `ambiguous: KELLER (rooms 204, 305), check manually` and continues with all other guests.
 
 #### User Story 5: Count taxable guests
 
