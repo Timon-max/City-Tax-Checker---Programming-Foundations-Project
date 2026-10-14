@@ -146,6 +146,11 @@ All names and numbers above are fictional.
 | Calculate the correct city tax per reservation and night | No automatic correction of the data |
 | List every difference and the fix | No graphical interface |
 | Statistics per day, week and month for the selected period | No PDF, Excel or image input |
+| Match guests by surname, after adding up split invoices of the same room into one charge | No automatic matching of guests with the same surname: they are flagged "ambiguous" for manual checking and the check continues |
+
+### Known limitation: matching by surname
+
+The two lists have no shared unique ID (List 1 has no Meldeschein number, the Meldeschein has no room number), and List 1 only contains the surname. The app therefore matches guests by surname only. If the same surname appears in more than one room, the app cannot tell the guests apart: it flags them as "ambiguous", leaves them for manual checking and continues with all other guests. A shared ID (for example the room or booking number in both exports) would solve this, but is out of scope. The demo data uses unique surnames, plus one deliberate duplicate to test the flag.
 
 ## 🔒 Data
 
