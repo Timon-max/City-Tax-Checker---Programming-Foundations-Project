@@ -20,9 +20,9 @@ The reception has to compare two lists every day:
 | **Children under 12** | Not recognised, must be checked by hand | Recognised automatically |
 
 * Guests often arrive differently from how they booked (booked 2 adults, arrive alone or with a child).
-* Both lists are created from the same reservation in the PMS, so both carry the **reservation number**. Surnames alone are not unique (two different "Müller" can stay on the same night), so the app never matches by name alone.
+* The two lists share no unique ID. List 1 has the room number and the surname, the Meldeschein has surname, first name and date of birth, but no room number. The surname is the only common field, and surnames are not always unique (two different "Müller" can stay on the same night).
 * One list is per day and the other per stay, so the numbers never look the same.
-* Some stays create two invoices, one for the guest and one for the company that pays (for example Booking.com). Both invoices have the same reservation number.
+* Some stays create two invoices, one for the guest and one for the company that pays (for example Booking.com). Both invoices carry the same room number and surname, the company invoice with a leading `** `.
 
 ### Example
 
@@ -39,7 +39,7 @@ A family books for 2 adults and 2 children, 2 nights. On arrival one child turns
 | Step | Description |
 |---|---|
 | 📥 **Input** | The two exported lists as CSV files (charges and registrations) and the date or period to check. |
-| 🔄 **Processing** | Match records by reservation number, count taxable persons per night, compare charged and correct city tax per night. |
+| 🔄 **Processing** | Match guests by surname, count taxable persons per night, compare charged and correct city tax per room and night. |
 | 📤 **Output** | A list of differences and the values to correct, statistics about the check, saved as a file. |
 
 ## 📄 Input files
@@ -56,38 +56,35 @@ Both lists are exported from the PMS as **CSV** files. PDF, Excel and image file
 | Date format | `DD.MM.YYYY`, for example `08.10.2026` |
 | Amounts | Decimal point, 2 decimals, in CHF, for example `8.40` |
 | Person counts | Whole numbers ≥ 0 |
-| Shared key | `reservation_id`, present in both files |
+| Matching key | Surname, there is no shared unique ID (see [Known limitation](#known-limitation-matching-by-surname)) |
 
 ### List 1: `mc_prestations.csv` (one row per charge)
 
 | Column | Type | Description |
 |---|---|---|
-| `reservation_id` | text | Reservation number from the PMS, for example `R-10421` |
 | `room` | text | Room number |
-| `surname` | text | Surname of the booking guest (may start with `** `) |
-| `first_name` | text | First name, may be empty |
+| `surname` | text | Surname of the booking guest (starts with `** ` on a company invoice) |
 | `date` | date | Date of the night that was charged |
 | `charge_type` | text | Type of charge, only `CITY_TAX` rows are used |
 | `persons` | whole number | Number of persons charged |
 | `amount` | amount | Amount charged in CHF |
 
 ```csv
-reservation_id;room;surname;first_name;date;charge_type;persons;amount
-R-10421;101;** MÜLLER;Hans;08.10.2026;CITY_TAX;2;8.40
-R-10421;101;** MÜLLER;Hans;08.10.2026;BREAKFAST;2;50.00
-R-10421;101;** MÜLLER;Hans;09.10.2026;CITY_TAX;2;8.40
-R-10433;214;MÜLLER;Peter;08.10.2026;CITY_TAX;1;4.20
-R-10475;220;SCHMID;Laura;08.10.2026;CITY_TAX;1;4.20
-R-10475;220;SCHMID;Laura;08.10.2026;CITY_TAX;1;4.20
-R-10462;118;ROSSI;Marco;08.10.2026;CITY_TAX;1;4.20
+room;surname;date;charge_type;persons;amount
+101;BRUNNER;08.10.2026;CITY_TAX;2;8.40
+101;BRUNNER;08.10.2026;BREAKFAST;2;50.00
+101;BRUNNER;09.10.2026;CITY_TAX;2;8.40
+214;MÜLLER;08.10.2026;CITY_TAX;1;4.20
+305;MÜLLER;08.10.2026;CITY_TAX;1;4.20
+220;** SCHMID;08.10.2026;CITY_TAX;1;4.20
+220;SCHMID;08.10.2026;CITY_TAX;1;4.20
+118;ROSSI;08.10.2026;CITY_TAX;1;4.20
 ```
 
 ### List 2: `meldeschein.csv` (one row per guest)
 
 | Column | Type | Description |
 |---|---|---|
-| `reservation_id` | text | Reservation number from the PMS, same as in List 1 |
-| `room` | text | Room number |
 | `surname` | text | Surname of the guest |
 | `first_name` | text | First name of the guest |
 | `date_of_birth` | date | Date of birth, may be empty (flagged, see User Story 2) |
@@ -95,38 +92,39 @@ R-10462;118;ROSSI;Marco;08.10.2026;CITY_TAX;1;4.20
 | `departure` | date | Departure date |
 
 ```csv
-reservation_id;room;surname;first_name;date_of_birth;arrival;departure
-R-10421;101;Müller;Hans;02.05.1986;08.10.2026;10.10.2026
-R-10421;101;Müller;Anna;11.09.1988;08.10.2026;10.10.2026
-R-10421;101;Müller;Lena;15.03.2013;08.10.2026;10.10.2026
-R-10421;101;Müller;Tim;20.06.2017;08.10.2026;10.10.2026
-R-10433;214;Müller;Peter;30.01.1979;07.10.2026;09.10.2026
-R-10475;220;Schmid;Laura;14.07.1992;08.10.2026;09.10.2026
-R-10475;220;Schmid;Jonas;03.12.1990;08.10.2026;09.10.2026
-R-10450;305;Weber;Sara;22.04.1995;08.10.2026;09.10.2026
-R-10462;118;Rossi;Marco;;08.10.2026;11.10.2026
+surname;first_name;date_of_birth;arrival;departure
+Brunner;Hans;02.05.1986;08.10.2026;10.10.2026
+Brunner;Anna;11.09.1988;08.10.2026;10.10.2026
+Brunner;Lena;15.03.2013;08.10.2026;10.10.2026
+Brunner;Tim;20.06.2017;08.10.2026;10.10.2026
+Müller;Peter;30.01.1979;07.10.2026;09.10.2026
+Müller;Eva;05.06.1985;08.10.2026;09.10.2026
+Schmid;Laura;14.07.1992;08.10.2026;09.10.2026
+Schmid;Jonas;03.12.1990;08.10.2026;09.10.2026
+Weber;Sara;22.04.1995;08.10.2026;09.10.2026
+Rossi;Marco;;08.10.2026;11.10.2026
 ```
 
 All names and numbers above are fictional.
 
 ### Expected result for 08.10.2026
 
-| Reservation | What the app finds |
+| Guest | What the app finds |
 |---|---|
-| `R-10421` (Müller, room 101) | Difference: charged 2 persons (8.40), correct 3 persons (12.60), difference +4.20 |
-| `R-10433` (Müller, room 214) | Correct, not listed. Same surname as `R-10421`, but a different reservation number, so no confusion |
-| `R-10475` (Schmid, room 220) | Correct, not listed. Two invoices (1 + 1 person) are added up to 2 persons |
-| `R-10450` (Weber, room 305) | Manual check: registered in List 2 but no city tax charged in List 1 |
-| `R-10462` (Rossi, room 118) | Manual check: date of birth missing, counted as taxable until checked |
+| Brunner, room 101 | Difference: charged 2 persons (8.40), correct 3 persons (12.60), difference +4.20 |
+| Müller, rooms 214 and 305 | Manual check: surname in two rooms, flagged "ambiguous" and not calculated |
+| Schmid, room 220 | Correct, not listed. Two invoices (1 + 1 person) are added up to 2 persons |
+| Weber | Manual check: registered in List 2 but no city tax charged in List 1 ("not matched") |
+| Rossi, room 118 | Manual check: date of birth missing, counted as taxable until checked |
 
 ## 📐 Calculation rules
 
 | Rule | Definition |
 |---|---|
-| **Unit of comparison** | One reservation on one night. The app compares **daily charges**, not whole stays. |
+| **Unit of comparison** | One room on one night. The app compares **daily charges**, not whole stays. |
 | **Night** | A guest stays on night `D` if `arrival ≤ D < departure`. The departure day is not a night. |
-| **Charged** | Sum of `persons` and `amount` of all `CITY_TAX` rows in List 1 with the same `reservation_id` and `date = D`. |
-| **Correct** | Number of taxable guests in List 2 with the same `reservation_id` who stay on night `D`, × 4.20 CHF. |
+| **Charged** | Sum of `persons` and `amount` of all `CITY_TAX` rows in List 1 with the same room and `date = D`. |
+| **Correct** | Number of taxable guests in List 2 matched to that room by surname (User Story 4) who stay on night `D`, × 4.20 CHF. |
 | **Taxable** | Guest is 12 or older on the arrival date. |
 | **Rate** | 4.20 CHF per taxable person per night *(assumption, rate to confirm)*. |
 
@@ -143,14 +141,14 @@ All names and numbers above are fictional.
 | ✅ In scope | ❌ Out of scope |
 |---|---|
 | Compare the two exported CSV lists | No connection to the hotel's PMS |
-| Calculate the correct city tax per reservation and night | No automatic correction of the data |
+| Calculate the correct city tax per room and night | No automatic correction of the data |
 | List every difference and the fix | No graphical interface |
 | Statistics per day, week and month for the selected period | No PDF, Excel or image input |
 | Match guests by surname, after adding up split invoices of the same room into one charge | No automatic matching of guests with the same surname: they are flagged "ambiguous" for manual checking and the check continues |
 
 ### Known limitation: matching by surname
 
-The two lists have no shared unique ID (List 1 has no Meldeschein number, the Meldeschein has no room number), and List 1 only contains the surname. The app therefore matches guests by surname only. If the same surname appears in more than one room, the app cannot tell the guests apart: it flags them as "ambiguous", leaves them for manual checking and continues with all other guests. A shared ID (for example the room or booking number in both exports) would solve this, but is out of scope. The demo data uses unique surnames, plus one deliberate duplicate to test the flag.
+The two lists have no shared unique ID (List 1 has no Meldeschein number, the Meldeschein has no room number), and List 1 only contains the surname. The app therefore matches guests by surname only. If the same surname appears in more than one room, the app cannot tell the guests apart: it flags them as "ambiguous", leaves them for manual checking and continues with all other guests. A shared ID (for example the room or booking number in both exports) would solve this, but is out of scope. The app also assumes that all guests of a room are registered under the surname of the booking guest. The example files use unique surnames, plus one deliberate duplicate (`MÜLLER` in rooms 214 and 305) to test the flag.
 
 ## 🔒 Data
 
@@ -193,19 +191,19 @@ As a hotel receptionist, I want the application to validate the data in both lis
 **Acceptance criteria**
 
 1. The application checks that all required columns of both files are present (see [Input files](#-input-files)). If a column is missing, the file is rejected and the missing column is named.
-2. Every row must have a `reservation_id`.
+2. Every row must have a surname. List 1 rows must also have a room number.
 3. All dates must be valid dates in `DD.MM.YYYY` format.
 4. In List 2, the departure date must be after the arrival date.
 5. `persons` must be a whole number ≥ 0, `amount` must be a number ≥ 0 with at most 2 decimals.
 6. If the date of birth is missing or invalid, the guest is flagged for manual checking and still processed (counted as taxable, see User Story 5).
-7. Any other invalid row (missing reservation number, invalid date, invalid number) is flagged as invalid and is not used to calculate the city tax.
-8. Every flag names the file, the line number, the reservation number (if present) and the reason.
+7. Any other invalid row (missing surname or room number, invalid date, invalid number) is flagged as invalid and is not used to calculate the city tax.
+8. Every flag names the file, the line number, the surname (if present) and the reason.
 9. Invalid rows do not stop the check, the other rows are processed. All flags appear in the report as "unclear data" (User Stories 7 and 8).
 10. The application does not silently make assumptions about missing information.
 
-**Example:** Given the List 2 row `R-10421;101;Müller;Hans;02.05.1986;08.10.2026;10.10.2026`, when the input is validated, then the guest can be processed.
+**Example:** Given the List 2 row `Brunner;Hans;02.05.1986;08.10.2026;10.10.2026`, when the input is validated, then the guest can be processed.
 
-**Edge case:** Given the List 2 row `R-10462;118;Rossi;Marco;;08.10.2026;11.10.2026`, when the input is validated, then the application flags `meldeschein.csv line 10, R-10462: date of birth missing` for manual checking instead of treating the row as invalid.
+**Edge case:** Given the List 2 row `Rossi;Marco;;08.10.2026;11.10.2026`, when the input is validated, then the application flags `meldeschein.csv line 11, Rossi: date of birth missing` for manual checking instead of treating the row as invalid.
 
 #### User Story 3: Select the check date or period
 
@@ -222,7 +220,7 @@ As a hotel receptionist, I want to select the date or the period to be checked, 
 7. If no rows are selected from one of the lists, the application shows a warning and asks whether to continue or enter another date.
 8. If an invalid date is entered, the application displays a clear error message and asks again. It never assumes a date.
 
-**Example:** Given the [example files](#-input-files) and the check date `08.10.2026` with an empty end date, when the records are selected, then 5 `CITY_TAX` rows from List 1 (the breakfast row and the 09.10.2026 row are ignored) and 9 guests from List 2 are selected.
+**Example:** Given the [example files](#-input-files) and the check date `08.10.2026` with an empty end date, when the records are selected, then 6 `CITY_TAX` rows from List 1 (the breakfast row and the 09.10.2026 row are ignored) and 10 guests from List 2 are selected.
 
 **Edge case:** Given the user enters `31.09.2026`, when the date is validated, then the application displays `31.09.2026 is not a valid date` and asks again.
 
@@ -243,9 +241,9 @@ As a hotel receptionist, I want the app to link each city tax charge in List 1 t
 5. The check does not stop at an ambiguous entry: all other guests are still matched and calculated.
 6. A guest found in only one list is reported as "not matched" (charged but not registered, or registered but not charged), not skipped.
 
-**Example:** Given room 101 with two List 1 rows `** MÜLLER` (city tax 8.40, 0 persons) and `MÜLLER` (2 persons, no city tax), and one Meldeschein entry `Müller` with 2 persons, when the lists are matched, then both List 1 rows are added up into one charge for room 101 (8.40, 2 persons) and linked to the Meldeschein entry.
+**Example:** Given room 220 with the two List 1 rows `** SCHMID` (1 person, 4.20) and `SCHMID` (1 person, 4.20) on 08.10.2026, and the Meldeschein guests `Schmid Laura` and `Schmid Jonas`, when the lists are matched, then both rows are added up into one charge for room 220 (2 persons, 8.40) and linked to both guests.
 
-**Edge case:** Given `KELLER` in rooms 204 and 305 of List 1 and two Meldeschein entries `Keller`, when the lists are matched, then the app flags both as `ambiguous: KELLER (rooms 204, 305), check manually` and continues with all other guests.
+**Edge case:** Given `MÜLLER` in rooms 214 and 305 of List 1 and the Meldeschein guests `Müller Peter` and `Müller Eva`, when the lists are matched, then the app flags `ambiguous: MÜLLER (rooms 214, 305), check manually` and continues with all other guests.
 
 #### User Story 5: Count taxable guests
 
@@ -255,31 +253,32 @@ As a hotel receptionist, I want the app to work out how many guests are taxable,
 
 1. A guest's age is calculated on the arrival date.
 2. A guest aged 12 or older is taxable, under 12 is exempt.
-3. The app counts the taxable guests per reservation and per night (only guests who stay that night).
+3. The app counts the taxable guests per room and per night: the guests matched to that room (User Story 4) who stay that night.
 4. A missing or invalid date of birth is flagged, and the guest is counted as taxable until checked.
 
-**Example:** Given reservation `R-10421` with 4 guests aged 40, 38, 13 and 9 on the arrival date 08.10.2026, when taxable guests are counted for the night of 08.10.2026, then the result is 3.
+**Example:** Given room 101 (Brunner) with 4 guests aged 40, 38, 13 and 9 on the arrival date 08.10.2026, when taxable guests are counted for the night of 08.10.2026, then the result is 3.
 
 **Edge case:** Given a guest who turns 12 during the stay, then the guest is still exempt for the whole stay, because age is taken on the arrival date.
 
 #### User Story 6: Compare charged and correct city tax per night
 
-As a hotel receptionist, I want the app to compare, for every reservation and every night of the selected period, what List 1 charged with the correct amount, so that guests are charged city tax for the right number of people.
+As a hotel receptionist, I want the app to compare, for every room and every night of the selected period, what List 1 charged with the correct amount, so that guests are charged city tax for the right number of people.
 
 **Acceptance criteria**
 
-1. The comparison is done per reservation and per night (daily charges), following the [calculation rules](#-calculation-rules). Whole stays are not compared.
-2. Charged = sum of `persons` and `amount` of the List 1 `CITY_TAX` rows of that reservation and night.
-3. Correct = taxable guests of that reservation staying that night × 4.20 CHF *(assumption, rate to confirm)*.
+1. The comparison is done per room and per night (daily charges), following the [calculation rules](#-calculation-rules). Whole stays are not compared.
+2. Charged = sum of `persons` and `amount` of the List 1 `CITY_TAX` rows of that room and night, after adding up split invoices (User Story 4).
+3. Correct = taxable guests matched to that room staying that night × 4.20 CHF *(assumption, rate to confirm)*.
 4. Difference = correct amount − charged amount. A positive difference means too little was charged, a negative one means too much.
 5. When the lists disagree, the Meldeschein counts as correct, and the row is marked so the user sees it in the report.
 6. If the charged amount does not equal charged persons × 4.20, the row is flagged "amount does not match persons".
-7. For every reservation and night with a difference, the app produces: date, reservation, room, guest name, persons charged, correct persons, amount charged, correct amount, difference. Reservations and nights without a difference are not listed as differences.
-8. Amounts are rounded to 2 decimals.
+7. For every room and night with a difference, the app produces: date, room, surname, persons charged, correct persons, amount charged, correct amount, difference. Rooms and nights without a difference are not listed as differences.
+8. Rooms flagged "ambiguous" or "not matched" (User Story 4) are not compared, they are only listed for manual checking.
+9. Amounts are rounded to 2 decimals.
 
-**Example:** Given `R-10421` charged for 2 persons (8.40) on 08.10.2026 and 3 taxable guests staying that night, when the amounts are compared, then the app produces `08.10.2026, R-10421, 101, MÜLLER Hans, 2 → 3, charged 8.40, correct 12.60, difference +4.20`.
+**Example:** Given room 101 (Brunner) charged for 2 persons (8.40) on 08.10.2026 and 3 taxable guests staying that night, when the amounts are compared, then the app produces `08.10.2026, 101, BRUNNER, 2 → 3, charged 8.40, correct 12.60, difference +4.20`.
 
-**Edge case:** Given `R-10475` charged by two invoices of 1 person each (4.20 + 4.20) on 08.10.2026 and 2 adult guests, then the charges are added up to 2 persons and 8.40, and the reservation does not appear in the list of differences.
+**Edge case:** Given room 220 (Schmid) charged by two invoices of 1 person each (4.20 + 4.20) on 08.10.2026 and 2 adult guests, then the charges are added up to 2 persons and 8.40, and the room does not appear in the list of differences.
 
 ---
 
@@ -292,17 +291,17 @@ As a hotel receptionist, I want to see statistics about the checked period, such
 **Acceptance criteria**
 
 1. After processing, the app shows a statistics section with:
-   * number of reservations checked, correct, with a difference, and not matched,
-   * number of unclear records, grouped by reason (missing date of birth, invalid row, name mismatch, amount does not match persons),
+   * number of rooms checked, correct, with a difference, ambiguous, and guests not matched,
+   * number of unclear records, grouped by reason (missing date of birth, invalid row, amount does not match persons),
    * total city tax charged, total correct city tax and total difference for the period.
 2. The app shows the charged, correct and difference totals **per day** for every day of the selected period.
 3. If the period covers more than one day, the app also shows the totals **per week** (Monday to Sunday) and **per calendar month**. Weeks or months that are only partly inside the period are marked `(partial)`.
-4. The app shows the share of reservations with a difference as a percentage with 1 decimal.
+4. The app shows the share of checked rooms with a difference as a percentage with 1 decimal.
 5. All amounts are shown in CHF with exactly 2 decimals.
-6. Amount totals only include matched reservations. Not matched reservations are counted, but their amounts are not added, because they need a manual check first.
+6. Amount totals only include matched rooms. Ambiguous rooms and not matched guests are counted, but their amounts are not added, because they need a manual check first.
 7. The numbers in the statistics are consistent with the list of differences (the total difference equals the sum of all listed differences).
 
-**Example:** Given the [example files](#-input-files) and the check date 08.10.2026, when the statistics are shown, then the user sees `Reservations checked: 5, correct: 3, with difference: 1, not matched: 1`, `Unclear data: 1 (missing date of birth: 1)`, `Charged: 25.20, Correct: 29.40, Difference: +4.20` and `Reservations with a difference: 20.0 %`.
+**Example:** Given the [example files](#-input-files) and the check date 08.10.2026, when the statistics are shown, then the user sees `Rooms checked: 3, correct: 2, with difference: 1, ambiguous: 2, guests not matched: 1`, `Unclear data: 1 (missing date of birth: 1)`, `Charged: 21.00, Correct: 25.20, Difference: +4.20` and `Rooms with a difference: 33.3 %`.
 
 **Edge case:** Given the period 28.09.2026 to 04.10.2026, then the weekly totals show one full week (28.09–04.10) and the monthly totals show `September 2026 (partial)` and `October 2026 (partial)`.
 
@@ -313,14 +312,14 @@ As a hotel receptionist, I want to see a clear, organized report of all differen
 **Acceptance criteria**
 
 1. The report shows the checked period at the top.
-2. The differences are displayed in a table with the columns: Date, Reservation, Room, Guest Name, Persons Charged, Correct Persons, Amount Charged, Correct Amount, Difference.
+2. The differences are displayed in a table with the columns: Date, Room, Surname, Persons Charged, Correct Persons, Amount Charged, Correct Amount, Difference.
 3. Rows are sorted by date, then by room number.
 4. All monetary amounts show exactly 2 decimal places in CHF, differences with a sign (`+4.20`, `-4.20`).
-5. Only reservations and nights with a difference are shown in the table.
-6. A second section "Needs manual check" lists every not matched reservation and every unclear record, with the reason (from User Stories 2, 4 and 6).
+5. Only rooms and nights with a difference are shown in the table.
+6. A second section "Needs manual check" lists every ambiguous room, every not matched guest and every unclear record, with the reason (from User Stories 2, 4 and 6).
 7. The statistics from User Story 7 are shown below.
 
-**Example:** Given processing found 1 difference and 2 records needing a manual check, when the report is displayed, then the user sees a table with 1 row, a "Needs manual check" section with 2 rows, and the statistics.
+**Example:** Given the [example files](#-input-files) and the check date 08.10.2026, when the report is displayed, then the user sees a table with 1 row (Brunner), a "Needs manual check" section with 4 rows (Müller room 214, Müller room 305, Weber, Rossi), and the statistics.
 
 **Edge case:** Given no differences and no unclear records are found, then the app displays `No differences found` and `Nothing to check manually` instead of empty tables.
 
