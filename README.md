@@ -150,6 +150,48 @@ All names and numbers above are fictional.
 
 The two lists have no shared unique ID (List 1 has no Meldeschein number, the Meldeschein has no room number), and List 1 only contains the surname. The app therefore matches guests by surname only. If the same surname appears in more than one room, the app cannot tell the guests apart: it flags them as "ambiguous", leaves them for manual checking and continues with all other guests. A shared ID (for example the room or booking number in both exports) would solve this, but is out of scope. The app also assumes that all guests of a room are registered under the surname of the booking guest. The example files use unique surnames, plus one deliberate duplicate (`MÜLLER` in rooms 214 and 305) to test the flag.
 
+## 🗂️ Project structure
+
+The program is split into three packages, one per owner (Input, Processing, Output). Each person works in their own folder, so our commits do not touch the same files. The program flow is described in [Program Flow.md](Program%20Flow.md).
+
+```
+City-Tax-Checker/
+├── main.py                  # starts the program, calls every step in order
+├── config.py                # constants: city tax rate, folders
+├── start_screen.py          # start screen, menu, yes/no questions
+├── input_data/              # Cristian (US-1 to US-3)
+│   ├── __init__.py
+│   ├── convert_excel.py     # Excel export -> CSV (roadmap step 1, Noah's code)
+│   ├── load_files.py        # US-1 ask for the paths, read the CSV files
+│   ├── validate_data.py     # US-2 check every row, flag unclear data
+│   └── select_night.py      # US-3 ask for the night, remove today's check-outs
+├── processing/              # Timon (US-4 to US-6)
+│   ├── __init__.py
+│   ├── match_guests.py      # US-4 clean surnames, one charge per room, match by surname
+│   ├── count_guests.py      # US-5 city tax per night, taxable persons
+│   └── compare_tax.py       # US-6 charged vs correct per room
+├── output/                  # Noah (US-7 to US-9)
+│   ├── __init__.py
+│   ├── check_statistics.py  # US-7 totals and counts
+│   ├── show_report.py       # US-8 print the tables
+│   └── save_report.py       # US-9 save the report as CSV
+├── data/                    # real exports, never committed (.gitignore)
+└── reports/                 # saved reports, never committed (.gitignore)
+```
+
+### Shared data
+
+The packages pass the data to each other as **lists of dictionaries** (one dictionary per row). Everyone uses these keys, so the parts fit together:
+
+| Data | Made by | Keys |
+|---|---|---|
+| Guest (BSCT) | `input_data` | `surname`, `first_name`, `arrival`, `departure`, `persons`, `stay_amount` |
+| Invoice (Morphe) | `input_data` | `room`, `surname`, `persons`, `city_tax` |
+| Flag | all | `file`, `line`, `surname`, `reason` |
+| Result per room | `processing` | `room`, `surname`, `charged_persons`, `correct_persons`, `charged_amount`, `correct_amount`, `difference`, `status` |
+
+`status` is one of `ok`, `difference`, `ambiguous`, `not registered`, `no city tax`.
+
 ## 🔒 Data
 
 This repository contains **no real guest data**. All tests use a small fake dataset.
