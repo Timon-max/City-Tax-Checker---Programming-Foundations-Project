@@ -3,8 +3,10 @@
 __pycache__/
 *.egg-info/
 .pytest_cache/
+.DS_Store
 
 # Real guest data, never commit it
 data/
 reports/
 dream-project/
+Sample data/
